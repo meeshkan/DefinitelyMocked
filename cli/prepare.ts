@@ -1,7 +1,18 @@
+import chalk from "chalk";
+import debug from "debug";
 import fs from "fs";
 import path from "path";
+import { format } from "util";
 
 export const DEFAULT_PREPARE_DIR = "prepared";
+
+const color = (firstArg: any, ...args: any[]) =>
+  chalk.bold.magenta(format(firstArg, ...args));
+
+const log = (firstArg: any, ...args: any[]) =>
+  console.log(color(firstArg, ...args));
+
+const debugLog = debug("cli");
 
 interface PrepareOptions {
   outDir: string;
@@ -12,7 +23,7 @@ interface PrepareOptions {
  * Uses `process.cwd()` as root for relative directory.
  * @param directory
  */
-const resolveDirectory = (directory: string) => {
+const resolveTargetDirectory = (directory: string) => {
   return path.resolve(process.cwd(), directory);
 };
 
@@ -29,47 +40,73 @@ const ensureDirectory = (directory: string) => {
     if (!fs.statSync(directory).isDirectory()) {
       throw Error(`Directory ${directory} exists but is not a directory`);
     }
-    console.log(`Directory exists: ${directory}`);
+    debugLog(`Directory exists: ${directory}`);
     return;
   }
 
-  // fs.accessSync(directory, fs.constants.R_OK && fs.constants.W_OK);
-  console.log(`Creating directory: ${directory}`);
+  log(`Creating directory: ${directory}`);
   fs.mkdirSync(directory);
   fs.accessSync(directory, fs.constants.R_OK | fs.constants.W_OK);
 };
 
+const existsDir = (directory: string) => {
+  return fs.existsSync(directory) && fs.statSync(directory).isDirectory();
+};
+
 /**
- *
+ * Resolve target directory and ensure it exists.
  * @param service Service name, used as target directory in target base
  * @param targetBaseDirectory Relative or absolute path to where output should be written
  */
-const ensureTargetDirectory = (
-  service: string,
-  targetBaseDirectory: string
-) => {
-  const resolvedDirectory = resolveDirectory(targetBaseDirectory);
+const ensureTargetDirectory = ({
+  targetBase,
+  service,
+}: {
+  targetBase: string;
+  service: string;
+}) => {
+  // Resolve absolute path to base directory: "/path/to/base"
+  const resolvedTargetBaseDirectory = resolveTargetDirectory(targetBase);
 
-  console.log(`Resolved directory: ${resolvedDirectory}`);
+  debugLog(`Resolved target directory: ${resolvedTargetBaseDirectory}`);
 
-  ensureDirectory(resolvedDirectory);
+  ensureDirectory(resolvedTargetBaseDirectory);
 
-  const resolveServiceDirectory = path.resolve(resolvedDirectory, service);
+  // Resolve absolute path to target directory: "/path/to/base/service-name"
+  const targetServiceDirectory = path.resolve(
+    resolvedTargetBaseDirectory,
+    service
+  );
 
-  ensureDirectory(resolveServiceDirectory);
+  ensureDirectory(targetServiceDirectory);
 
-  return resolveServiceDirectory;
+  return targetServiceDirectory;
+};
+
+const resolveServiceDefinitionDirectory = (service: string) => {
+  return path.resolve(__dirname, "..", "services", service);
 };
 
 const prepare = (service: string, opts: Partial<PrepareOptions>) => {
   const targetBaseDirectory = (opts && opts.outDir) || DEFAULT_PREPARE_DIR;
   console.log(
-    `Preparing service "${service}", outputDirectory: ${JSON.stringify(
+    `Preparing service "${color(service)}", outputDirectory: ${color(
       targetBaseDirectory
     )}`
   );
-  const targetDirectory = ensureTargetDirectory(service, targetBaseDirectory);
-  console.log(`Prepared target: ${targetDirectory}`);
+
+  const serviceDefinitionDirectory = resolveServiceDefinitionDirectory(service);
+  console.log(`Reading from: ${color(serviceDefinitionDirectory)}`);
+
+  if (!existsDir(serviceDefinitionDirectory)) {
+    throw Error(`Could not find directory: ${serviceDefinitionDirectory}`);
+  }
+
+  const targetDirectory = ensureTargetDirectory({
+    service,
+    targetBase: targetBaseDirectory,
+  });
+  console.log(`Writing to: ${color(targetDirectory)}`);
 };
 
 export default prepare;
