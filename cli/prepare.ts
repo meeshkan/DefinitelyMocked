@@ -107,6 +107,11 @@ const prepare = (service: string, opts: Partial<PrepareOptions>) => {
     targetBase: targetBaseDirectory,
   });
   console.log(`Writing to: ${color(targetDirectory)}`);
+
+  // TODO
+  // 1. Copy all yamls and jsons
+  // 2. Prepare package.json and write to directory
+  // 3. Add README.md
 };
 
 export default prepare;
