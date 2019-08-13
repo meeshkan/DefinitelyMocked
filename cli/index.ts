@@ -1,13 +1,18 @@
 const program = require("commander");
-import { prepare } from "./actions";
+import prepare, { DEFAULT_PREPARE_DIR } from "./prepare";
 
 program
   .command("prepare <service>")
   .description("Prepare a service for publishing")
-  // .option("-r, --recursive", "Remove recursively")
-  .action((service: string) => prepare(service));
+  .option(
+    "-o, --out-dir <dir>",
+    `Output directory (default: ${DEFAULT_PREPARE_DIR})`
+  )
+  .action((service: string, cmdObj: any) => {
+    prepare(service, { outDir: cmdObj.outDir });
+  });
 
-// error on unknown commands
+// Error on unknown commands
 program.on("command:*", function() {
   console.error(
     "Invalid command: %s\nSee --help for a list of available commands.",
