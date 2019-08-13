@@ -2,17 +2,21 @@
   "name": "cli",
   "version": "1.0.0",
   "description": "CLI for publishing services",
-  "main": "index.js",
+  "main": "dist/index.js",
   "repository": "https://github.com/unmock/DefinitelyMocked",
   "author": "unmock",
   "license": "MIT",
   "private": false,
   "devDependencies": {
     "@types/jest": "^24.0.17",
+    "@types/node": "^12.7.1",
     "commander": "^3.0.0",
     "jest": "^24.8.0",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.3.0",
     "typescript": "^3.5.3"
+  },
+  "scripts": {
+    "cli": "ts-node index.ts"
   }
 }
