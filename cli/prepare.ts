@@ -8,6 +8,7 @@ import {
   createPackageJson,
   writeToFile,
   createReadme,
+  ensureTargetDirectory,
 } from "./utils";
 import { IO } from "fp-ts/lib/IO";
 
@@ -25,70 +26,8 @@ interface PrepareOptions {
   outDir: string;
 }
 
-/**
- * Resolve absolute path to directory.
- * Uses `process.cwd()` as root for relative directory.
- * @param directory
- */
-const resolveTargetDirectory = (directory: string) => {
-  return path.resolve(process.cwd(), directory);
-};
-
-/**
- * Ensure directory exists.
- * @param directory Absolute path to directory
- */
-const ensureDirectory = (directory: string) => {
-  if (!path.isAbsolute(directory)) {
-    throw Error(`Expected absolute path, got ${directory}`);
-  }
-
-  if (fs.existsSync(directory)) {
-    fs.accessSync(directory, fs.constants.R_OK | fs.constants.W_OK);
-    if (!fs.statSync(directory).isDirectory()) {
-      throw Error(`Directory ${directory} exists but is not a directory`);
-    }
-    debugLog(`Directory exists: ${directory}`);
-    return;
-  }
-
-  log(`Creating directory: ${directory}`);
-  fs.mkdirSync(directory);
-  fs.accessSync(directory, fs.constants.R_OK | fs.constants.W_OK);
-};
-
 const existsDir = (directory: string) => {
   return fs.existsSync(directory) && fs.statSync(directory).isDirectory();
-};
-
-/**
- * Resolve target directory and ensure it exists.
- * @param service Service name, used as target directory in target base
- * @param targetBaseDirectory Relative or absolute path to where output should be written
- */
-const ensureTargetDirectory = ({
-  targetBase,
-  service,
-}: {
-  targetBase: string;
-  service: string;
-}) => {
-  // Resolve absolute path to base directory: "/path/to/base"
-  const resolvedTargetBaseDirectory = resolveTargetDirectory(targetBase);
-
-  debugLog(`Resolved target directory: ${resolvedTargetBaseDirectory}`);
-
-  ensureDirectory(resolvedTargetBaseDirectory);
-
-  // Resolve absolute path to target directory: "/path/to/base/service-name"
-  const targetServiceDirectory = path.resolve(
-    resolvedTargetBaseDirectory,
-    service
-  );
-
-  ensureDirectory(targetServiceDirectory);
-
-  return targetServiceDirectory;
 };
 
 const resolveServiceDefinitionDirectory = (service: string) => {
@@ -96,13 +35,9 @@ const resolveServiceDefinitionDirectory = (service: string) => {
 };
 
 const prepare = (service: string, opts: Partial<PrepareOptions>) => {
-  const targetBaseDirectory = (opts && opts.outDir) || DEFAULT_PREPARE_DIR;
-  console.log(
-    `Preparing service "${color(service)}", outputDirectory: ${color(
-      targetBaseDirectory
-    )}`
-  );
-
+  /**
+   * Resolve where to read files
+   */
   const serviceDefinitionDirectory = resolveServiceDefinitionDirectory(service);
   console.log(`Reading from: ${color(serviceDefinitionDirectory)}`);
 
@@ -110,16 +45,28 @@ const prepare = (service: string, opts: Partial<PrepareOptions>) => {
     throw Error(`Could not find directory: ${serviceDefinitionDirectory}`);
   }
 
-  const targetDirectory = ensureTargetDirectory({
-    service,
-    targetBase: targetBaseDirectory,
-  });
-  console.log(`Writing to: ${color(targetDirectory)}`);
+  /**
+   * Resolve where to write files
+   */
 
-  // TODO
-  // 1. Copy all yamls and jsons
-  // 2. Prepare package.json and write to directory
-  // 3. Add README.md
+  const targetBaseDirectory = (opts && opts.outDir) || DEFAULT_PREPARE_DIR;
+  console.log(
+    `Preparing service "${color(service)}", outputDirectory: ${color(
+      targetBaseDirectory
+    )}`
+  );
+
+  const resolvedTargetBase = path.resolve(process.cwd(), targetBaseDirectory);
+
+  const {
+    targetServiceDirectory: targetDirectory,
+    createDirectoryOps: createTargetDirectory,
+  } = ensureTargetDirectory({
+    service,
+    targetBase: resolvedTargetBase,
+  });
+
+  console.log(`Writing to: ${color(targetDirectory)}`);
 
   const copyFilesOp: IO<void[]> = copyFiles({
     source: serviceDefinitionDirectory,
@@ -151,6 +98,9 @@ const prepare = (service: string, opts: Partial<PrepareOptions>) => {
     targetFile: path.resolve(targetDirectory, "README.md"),
   });
 
+  console.log("Writing...");
+
+  createTargetDirectory();
   copyFilesOp();
   writePackageJsonOp();
   writeReadmeOp();

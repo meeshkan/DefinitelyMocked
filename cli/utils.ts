@@ -145,3 +145,61 @@ Files were exported from https://github.com/unmock/DefinitelyMocked/tree/master/
 `;
   return readme;
 };
+
+/**
+ * Ensure directory exists.
+ * @param directory Absolute path to directory
+ */
+const ensureDirectory = (directory: string) => {
+  if (!path.isAbsolute(directory)) {
+    throw Error(`Expected absolute path, got ${directory}`);
+  }
+
+  if (fs.existsSync(directory)) {
+    fs.accessSync(directory, fs.constants.R_OK | fs.constants.W_OK);
+    if (!fs.statSync(directory).isDirectory()) {
+      throw Error(`Directory ${directory} exists but is not a directory`);
+    }
+    debugLog(`Directory exists: ${directory}`);
+    return;
+  }
+
+  debugLog(`Creating directory: ${directory}`);
+  fs.mkdirSync(directory);
+  fs.accessSync(directory, fs.constants.R_OK | fs.constants.W_OK);
+};
+
+/**
+ * Resolve target directory and ensure it exists.
+ * @param service Service name, used as target directory in target base
+ * @param targetBase Absolute path to where output should be written
+ */
+export const ensureTargetDirectory = ({
+  targetBase,
+  service,
+}: {
+  targetBase: string;
+  service: string;
+}): { targetServiceDirectory: string; createDirectoryOps: IO<void[]> } => {
+  if (!path.isAbsolute(targetBase)) {
+    throw Error(`Expected absolute path, got ${targetBase}`);
+  }
+
+  debugLog(`Target base directory: ${targetBase}`);
+
+  const createBaseDirectoryOp: IO<void> = () => ensureDirectory(targetBase);
+
+  // Resolve absolute path to target directory: "/path/to/base/service-name"
+  const targetServiceDirectory = path.resolve(targetBase, service);
+
+  const createTargetDirectoryOp: IO<void> = () =>
+    ensureDirectory(targetServiceDirectory);
+
+  return {
+    targetServiceDirectory,
+    createDirectoryOps: ioSequence([
+      createBaseDirectoryOp,
+      createTargetDirectoryOp,
+    ]),
+  };
+};
