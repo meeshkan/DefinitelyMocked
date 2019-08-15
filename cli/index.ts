@@ -21,7 +21,7 @@ program
   )
   .action((service: string, cmdObj: any) => {
     prepare(service, {
-      outDir: cmdObj.outDir,
+      outBaseDir: cmdObj.outDir,
       servicesDir: cmdObj.serviceDir,
     });
   });

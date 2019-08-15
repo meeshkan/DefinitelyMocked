@@ -19,7 +19,7 @@ const color = (firstArg: any, ...args: any[]) =>
   chalk.bold.magenta(format(firstArg, ...args));
 
 interface PrepareOptions {
-  outDir: string;
+  outBaseDir: string;
   servicesDir: string;
 }
 
@@ -43,6 +43,17 @@ const prepareMain = (service: string, opts: Partial<PrepareOptions>) => {
   console.log(`Prepared package in: ${color(targetDirectory)}`);
 };
 
+const resolveOptions = (opts: Partial<PrepareOptions>): PrepareOptions => {
+  const relativeServicesDir = opts.servicesDir || DEFAULT_SERVICE_DIR;
+  const servicesDir = path.resolve(process.cwd(), relativeServicesDir);
+
+  const relativeOutDir = (opts && opts.outBaseDir) || DEFAULT_PREPARE_DIR;
+
+  const outBaseDir = path.resolve(process.cwd(), relativeOutDir);
+
+  return { servicesDir, outBaseDir };
+};
+
 const prepare = (
   service: string,
   opts: Partial<PrepareOptions>
@@ -51,8 +62,9 @@ const prepare = (
    * Resolve where to read files
    */
 
-  const servicesDir = opts.servicesDir || DEFAULT_SERVICE_DIR;
-  const serviceDefinitionDirectory = path.resolve(process.cwd(), servicesDir);
+  const { servicesDir, outBaseDir } = resolveOptions(opts);
+
+  const serviceDefinitionDirectory = path.resolve(servicesDir, service);
 
   console.log(`Reading from: ${color(serviceDefinitionDirectory)}`);
 
@@ -64,14 +76,7 @@ const prepare = (
    * Resolve where to write files
    */
 
-  const targetBaseDirectory = (opts && opts.outDir) || DEFAULT_PREPARE_DIR;
-  console.log(
-    `Preparing service "${color(service)}", outputDirectory: ${color(
-      targetBaseDirectory
-    )}`
-  );
-
-  const resolvedTargetBase = path.resolve(process.cwd(), targetBaseDirectory);
+  const resolvedTargetBase = outBaseDir;
 
   const {
     targetServiceDirectory: targetDirectory,
