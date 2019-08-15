@@ -14,8 +14,15 @@ program
     "-o, --out-dir <dir>",
     `Output directory (default: ${DEFAULT_PREPARE_DIR})`
   )
+  .option(
+    "-d, --service-dir <dir>",
+    `Services directory where to look for folder <service> (default: ./services)`
+  )
   .action((service: string, cmdObj: any) => {
-    prepare(service, { outDir: cmdObj.outDir });
+    prepare(service, {
+      outDir: cmdObj.outDir,
+      servicesDir: cmdObj.serviceDir,
+    });
   });
 
 // Error on unknown commands

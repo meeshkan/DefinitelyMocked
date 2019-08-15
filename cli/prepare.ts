@@ -12,6 +12,7 @@ import {
 import { IO, io } from "fp-ts/lib/IO";
 import { array } from "fp-ts/lib/Array";
 
+export const DEFAULT_SERVICE_DIR = "services";
 export const DEFAULT_PREPARE_DIR = "prepared";
 
 const color = (firstArg: any, ...args: any[]) =>
@@ -19,6 +20,7 @@ const color = (firstArg: any, ...args: any[]) =>
 
 interface PrepareOptions {
   outDir: string;
+  servicesDir: string;
 }
 
 const existsDir = (directory: string) => {
@@ -48,7 +50,10 @@ const prepare = (
   /**
    * Resolve where to read files
    */
-  const serviceDefinitionDirectory = resolveServiceDefinitionDirectory(service);
+
+  const servicesDir = opts.servicesDir || DEFAULT_SERVICE_DIR;
+  const serviceDefinitionDirectory = path.resolve(process.cwd(), servicesDir);
+
   console.log(`Reading from: ${color(serviceDefinitionDirectory)}`);
 
   if (!existsDir(serviceDefinitionDirectory)) {
