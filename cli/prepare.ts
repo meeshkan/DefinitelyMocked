@@ -9,7 +9,8 @@ import {
   createReadme,
   ensureTargetDirectory,
 } from "./utils";
-import { IO } from "fp-ts/lib/IO";
+import { IO, io } from "fp-ts/lib/IO";
+import { array } from "fp-ts/lib/Array";
 
 export const DEFAULT_PREPARE_DIR = "prepared";
 
@@ -33,7 +34,17 @@ const resolveServiceDefinitionDirectory = (service: string) => {
   return path.resolve(servicesDir, service);
 };
 
-const prepare = (service: string, opts: Partial<PrepareOptions>) => {
+const prepareMain = (service: string, opts: Partial<PrepareOptions>) => {
+  const { targetDirectory, ops } = prepare(service, opts);
+  // console.log(`Writing files to: ${color(targetDirectory)}`);
+  ops();
+  console.log(`Prepared package in: ${color(targetDirectory)}`);
+};
+
+const prepare = (
+  service: string,
+  opts: Partial<PrepareOptions>
+): { targetDirectory: string; ops: IO<any[]> } => {
   /**
    * Resolve where to read files
    */
@@ -97,14 +108,15 @@ const prepare = (service: string, opts: Partial<PrepareOptions>) => {
     targetFile: path.resolve(targetDirectory, "README.md"),
   });
 
-  console.log("Writing...");
-
-  createTargetDirectory();
-  copyFilesOp();
-  writePackageJsonOp();
-  writeReadmeOp();
-
-  console.log(`Prepared package in: ${color(targetDirectory)}`);
+  return {
+    targetDirectory,
+    ops: array.sequence(io)([
+      createTargetDirectory,
+      copyFilesOp,
+      writePackageJsonOp,
+      writeReadmeOp,
+    ]),
+  };
 };
 
-export default prepare;
+export default prepareMain;
