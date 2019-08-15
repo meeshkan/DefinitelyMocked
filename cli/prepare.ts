@@ -33,7 +33,9 @@ const prepareMain = (service: string, opts: Partial<PrepareOptions>) => {
   console.log(`Prepared package in: ${color(targetDirectory)}`);
 };
 
-const resolveOptions = (opts: Partial<PrepareOptions>): PrepareOptions => {
+export const resolveOptions = (
+  opts: Partial<PrepareOptions>
+): PrepareOptions => {
   const relativeServicesDir = opts.servicesDir || DEFAULT_SERVICE_DIR;
   const servicesDir = path.resolve(process.cwd(), relativeServicesDir);
 
@@ -44,7 +46,7 @@ const resolveOptions = (opts: Partial<PrepareOptions>): PrepareOptions => {
   return { servicesDir, outBaseDir };
 };
 
-const prepare = (
+export const prepare = (
   service: string,
   opts: Partial<PrepareOptions>
 ): { targetDirectory: string; ops: IO<any[]> } => {
