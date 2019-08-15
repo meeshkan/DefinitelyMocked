@@ -28,9 +28,12 @@ yarn cli prepare [service-name] [-o output-directory]
 # Move to where you prepared the package
 cd prepared/[service-name]
 
+# Check all files are present
+ls
+
 # Verify package.json is correct
 cat package.json
 
-# Publish dry-run
+# Publish (dry-run)
 npm publish --access public --dry-run
 ```
