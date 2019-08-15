@@ -38,15 +38,40 @@ export const copyFiles = ({
     .filter((filename: string) =>
       typeof pattern === "undefined" ? true : pattern.test(filename)
     );
-  debugLog(`Moving files: ${JSON.stringify(files)}`);
+  debugLog(`Preparing moving: ${JSON.stringify(files)}`);
 
   const copyOps: IO<void>[] = files.map((filename: string) => {
     const fullFilePath = path.resolve(source, filename);
     const fullTarget = path.resolve(targetDir, filename);
-    return () => fs.copyFileSync(fullFilePath, fullTarget);
+    return () => {
+      debugLog(`Copying: ${fullFilePath} -> ${fullTarget}`);
+      fs.copyFileSync(fullFilePath, fullTarget);
+    };
   });
 
   return ioSequence(copyOps);
+};
+
+// TODO Rather return IOEither
+export const writeToFile = ({
+  object,
+  targetFile,
+}: {
+  object: any;
+  targetFile: string;
+}): IO<void> => {
+  debugLog(`Preparing write to ${targetFile}`);
+
+  if (!path.isAbsolute(targetFile)) {
+    throw Error(`Expected absolute path to target, got ${targetFile}`);
+  }
+
+  const prettyPrinted = JSON.stringify(object, null, 2);
+
+  return () => {
+    debugLog(`Writing to ${targetFile}}`);
+    fs.writeFileSync(targetFile, prettyPrinted);
+  };
 };
 
 /**
