@@ -3,7 +3,8 @@ import debug from "debug";
 import fs from "fs";
 import path from "path";
 import { format } from "util";
-import { copyFiles } from "./utils";
+import { copyFiles, createPackageJson } from "./utils";
+import { IO } from "fp-ts/lib/IO";
 
 export const DEFAULT_PREPARE_DIR = "prepared";
 
@@ -115,11 +116,20 @@ const prepare = (service: string, opts: Partial<PrepareOptions>) => {
   // 2. Prepare package.json and write to directory
   // 3. Add README.md
 
-  const copyFilesOp = copyFiles({
+  const copyFilesOp: IO<void[]> = copyFiles({
     source: serviceDefinitionDirectory,
     targetDir: targetDirectory,
     pattern: /ya?ml$/,
   });
+
+  // copyFilesOp();
+
+  const packageJson = createPackageJson({
+    sourceDir: serviceDefinitionDirectory,
+    service,
+  });
+
+  console.log(`Prepared package json: ${JSON.stringify(packageJson)}`);
 };
 
 export default prepare;
