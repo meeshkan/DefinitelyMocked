@@ -3,6 +3,7 @@ import debug from "debug";
 import fs from "fs";
 import path from "path";
 import { format } from "util";
+import { copyFiles } from "./utils";
 
 export const DEFAULT_PREPARE_DIR = "prepared";
 
@@ -37,6 +38,7 @@ const ensureDirectory = (directory: string) => {
   }
 
   if (fs.existsSync(directory)) {
+    fs.accessSync(directory, fs.constants.R_OK | fs.constants.W_OK);
     if (!fs.statSync(directory).isDirectory()) {
       throw Error(`Directory ${directory} exists but is not a directory`);
     }
@@ -112,6 +114,12 @@ const prepare = (service: string, opts: Partial<PrepareOptions>) => {
   // 1. Copy all yamls and jsons
   // 2. Prepare package.json and write to directory
   // 3. Add README.md
+
+  const copyFilesOp = copyFiles({
+    source: serviceDefinitionDirectory,
+    targetDir: targetDirectory,
+    pattern: /ya?ml$/,
+  });
 };
 
 export default prepare;

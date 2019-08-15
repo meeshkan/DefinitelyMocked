@@ -21,5 +21,8 @@
   },
   "scripts": {
     "cli": "ts-node index.ts"
+  },
+  "dependencies": {
+    "fp-ts": "^2.0.5"
   }
 }
