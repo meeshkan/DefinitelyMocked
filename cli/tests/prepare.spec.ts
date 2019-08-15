@@ -3,6 +3,26 @@ import os from "os";
 import path from "path";
 import prepareMain, { prepare, resolveOptions, DEFAULT_PREPARE_DIR, DEFAULT_SERVICE_DIR } from "../prepare";
 
+/**
+ * Remove directory recursively, with additional safeguards for testing it's a tmp dir.
+ * @param {string} directory
+ * @see https://stackoverflow.com/a/42505874/3027390
+ */
+function rimrafTmp(directory: string) {
+  if (!directory.startsWith(`${os.tmpdir()}${path.sep}`)) {
+    throw Error("Trying to delete non-tmp directory!");
+  }
+  fs.readdirSync(directory).forEach((entry: string) => {
+    const entryPath = path.join(directory, entry);
+    if (fs.lstatSync(entryPath).isDirectory()) {
+      rimrafTmp(entryPath);
+    } else {
+      fs.unlinkSync(entryPath);
+    }
+  });
+  fs.rmdirSync(directory);
+}
+
 describe("Prepare", () => {
   describe("options", () => {
     it("should resolve correctly when none given", () => {
@@ -56,7 +76,11 @@ describe("Prepare", () => {
       expect(files).toContain("README.md");
     });
     afterAll(() => {
-      // Delete tmp folder
+      if (typeof tmpFolder !== "undefined") {
+        console.log(`Deleting directory: ${tmpFolder}`);
+        rimrafTmp(tmpFolder);
+        expect(fs.existsSync(tmpFolder)).toBe(false);
+      }
     });
   });
 });
