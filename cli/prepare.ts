@@ -133,7 +133,7 @@ const prepare = (service: string, opts: Partial<PrepareOptions>) => {
   });
 
   console.log(
-    "Prepared package json:",
+    "Prepared package json:\n",
     color(JSON.stringify(packageJson, null, 2))
   );
 
@@ -154,6 +154,8 @@ const prepare = (service: string, opts: Partial<PrepareOptions>) => {
   copyFilesOp();
   writePackageJsonOp();
   writeReadmeOp();
+
+  console.log(`Prepared package in: ${color(targetDirectory)}`);
 };
 
 export default prepare;
