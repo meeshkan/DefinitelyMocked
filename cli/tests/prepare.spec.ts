@@ -1,5 +1,7 @@
+import fs from "fs";
+import os from "os";
 import path from "path";
-import { prepare, resolveOptions, DEFAULT_PREPARE_DIR, DEFAULT_SERVICE_DIR } from "../prepare";
+import prepareMain, { prepare, resolveOptions, DEFAULT_PREPARE_DIR, DEFAULT_SERVICE_DIR } from "../prepare";
 
 describe("Prepare", () => {
   describe("options", () => {
@@ -31,6 +33,30 @@ describe("Prepare", () => {
       const expectedTargetDirectory = path.resolve(process.cwd(), "tests/prepared", testService);
       expect(targetDirectory).toBe(expectedTargetDirectory);
       expect(ops).toBeDefined();
+    });
+  });
+  describe("writing to tmp directory", () => {
+    let tmpFolder: string;
+    beforeAll(() => {
+      tmpFolder = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
+    });
+    it("should write files as expected", () => {
+      const testService = "test-service";
+      prepareMain(testService, {
+        servicesDir: "tests/services",
+        outBaseDir: tmpFolder,
+      });
+      const expectedWrittenDir = path.resolve(tmpFolder, testService);
+      if (!fs.existsSync(expectedWrittenDir)) {
+        throw Error(`Directory does not exist: ${expectedWrittenDir}`);
+      }
+      const files = fs.readdirSync(expectedWrittenDir);
+      expect(files).toContain("openapi.yaml");
+      expect(files).toContain("package.json");
+      expect(files).toContain("README.md");
+    });
+    afterAll(() => {
+      // Delete tmp folder
     });
   });
 });
