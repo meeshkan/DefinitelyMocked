@@ -39,3 +39,35 @@ cat package.json
 # Publish (dry-run)
 npm publish --access public --dry-run
 ```
+
+## Development
+
+Run tests:
+
+```bash
+yarn test
+```
+
+Build distribution:
+
+```bash
+yarn build
+```
+
+Run linting:
+
+```bash
+yarn lint
+```
+
+Check formatting:
+
+```bash
+yarn format-check
+```
+
+Fix formatting:
+
+```bash
+yarn format
+```
