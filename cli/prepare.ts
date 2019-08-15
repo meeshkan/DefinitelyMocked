@@ -2,21 +2,14 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { format } from "util";
-import {
-  copyFiles,
-  createPackageJson,
-  writeToFile,
-  createReadme,
-  ensureTargetDirectory,
-} from "./utils";
+import { copyFiles, createPackageJson, writeToFile, createReadme, ensureTargetDirectory } from "./utils";
 import { IO, io } from "fp-ts/lib/IO";
 import { array } from "fp-ts/lib/Array";
 
 export const DEFAULT_SERVICE_DIR = "services";
 export const DEFAULT_PREPARE_DIR = "prepared";
 
-const color = (firstArg: any, ...args: any[]) =>
-  chalk.bold.magenta(format(firstArg, ...args));
+const color = (firstArg: any, ...args: any[]) => chalk.bold.magenta(format(firstArg, ...args));
 
 interface PrepareOptions {
   outBaseDir: string;
@@ -33,9 +26,7 @@ const prepareMain = (service: string, opts: Partial<PrepareOptions>) => {
   console.log(`Prepared package in: ${color(targetDirectory)}`);
 };
 
-export const resolveOptions = (
-  opts: Partial<PrepareOptions>
-): PrepareOptions => {
+export const resolveOptions = (opts: Partial<PrepareOptions>): PrepareOptions => {
   const relativeServicesDir = opts.servicesDir || DEFAULT_SERVICE_DIR;
   const servicesDir = path.resolve(process.cwd(), relativeServicesDir);
 
@@ -68,10 +59,7 @@ export const prepare = (
    */
   const resolvedTargetBase = outBaseDir;
 
-  const {
-    targetServiceDirectory: targetDirectory,
-    createDirectoryOps: createTargetDirectory,
-  } = ensureTargetDirectory({
+  const { targetServiceDirectory: targetDirectory, createDirectoryOps: createTargetDirectory } = ensureTargetDirectory({
     service,
     targetBase: resolvedTargetBase,
   });
@@ -89,10 +77,7 @@ export const prepare = (
     service,
   });
 
-  console.log(
-    "Prepared package json:\n",
-    color(JSON.stringify(packageJson, null, 2))
-  );
+  console.log("Prepared package json:\n", color(JSON.stringify(packageJson, null, 2)));
 
   const writePackageJsonOp: IO<void> = writeToFile({
     contents: packageJson,
@@ -110,12 +95,7 @@ export const prepare = (
 
   return {
     targetDirectory,
-    ops: array.sequence(io)([
-      createTargetDirectory,
-      copyFilesOp,
-      writePackageJsonOp,
-      writeReadmeOp,
-    ]),
+    ops: array.sequence(io)([createTargetDirectory, copyFilesOp, writePackageJsonOp, writeReadmeOp]),
   };
 };
 
