@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const program = require("commander");
 import prepare, { DEFAULT_PREPARE_DIR } from "./prepare";
 
