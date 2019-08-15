@@ -12,43 +12,51 @@ import {
 import { IO, io } from "fp-ts/lib/IO";
 import { array } from "fp-ts/lib/Array";
 
+export const DEFAULT_SERVICE_DIR = "services";
 export const DEFAULT_PREPARE_DIR = "prepared";
 
 const color = (firstArg: any, ...args: any[]) =>
   chalk.bold.magenta(format(firstArg, ...args));
 
 interface PrepareOptions {
-  outDir: string;
+  outBaseDir: string;
+  servicesDir: string;
 }
 
 const existsDir = (directory: string) => {
   return fs.existsSync(directory) && fs.statSync(directory).isDirectory();
 };
 
-/**
- * TODO Do not hard-code services to live in `__dirname/../services`
- * @param service Service name, the name of the folder where to read service specification.
- */
-const resolveServiceDefinitionDirectory = (service: string) => {
-  const servicesDir = path.resolve(__dirname, "..", "services");
-  return path.resolve(servicesDir, service);
-};
-
 const prepareMain = (service: string, opts: Partial<PrepareOptions>) => {
   const { targetDirectory, ops } = prepare(service, opts);
-  // console.log(`Writing files to: ${color(targetDirectory)}`);
   ops();
   console.log(`Prepared package in: ${color(targetDirectory)}`);
 };
 
-const prepare = (
+export const resolveOptions = (
+  opts: Partial<PrepareOptions>
+): PrepareOptions => {
+  const relativeServicesDir = opts.servicesDir || DEFAULT_SERVICE_DIR;
+  const servicesDir = path.resolve(process.cwd(), relativeServicesDir);
+
+  const relativeOutDir = (opts && opts.outBaseDir) || DEFAULT_PREPARE_DIR;
+
+  const outBaseDir = path.resolve(process.cwd(), relativeOutDir);
+
+  return { servicesDir, outBaseDir };
+};
+
+export const prepare = (
   service: string,
   opts: Partial<PrepareOptions>
 ): { targetDirectory: string; ops: IO<any[]> } => {
   /**
-   * Resolve where to read files
+   * Resolve service and output base directories
    */
-  const serviceDefinitionDirectory = resolveServiceDefinitionDirectory(service);
+  const { servicesDir, outBaseDir } = resolveOptions(opts);
+
+  const serviceDefinitionDirectory = path.resolve(servicesDir, service);
+
   console.log(`Reading from: ${color(serviceDefinitionDirectory)}`);
 
   if (!existsDir(serviceDefinitionDirectory)) {
@@ -58,15 +66,7 @@ const prepare = (
   /**
    * Resolve where to write files
    */
-
-  const targetBaseDirectory = (opts && opts.outDir) || DEFAULT_PREPARE_DIR;
-  console.log(
-    `Preparing service "${color(service)}", outputDirectory: ${color(
-      targetBaseDirectory
-    )}`
-  );
-
-  const resolvedTargetBase = path.resolve(process.cwd(), targetBaseDirectory);
+  const resolvedTargetBase = outBaseDir;
 
   const {
     targetServiceDirectory: targetDirectory,

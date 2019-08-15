@@ -19,8 +19,10 @@ yarn cli -h
 Create a folder preparing package for publishing:
 
 ```bash
-yarn cli prepare [service-name] [-o output-directory]
+yarn cli prepare [service-name] [-o output-directory] [-d service-directory]
 ```
+
+Service is searched from `./services` and package is prepared in `.prepared/` by default.
 
 ## Publishing a prepared package
 

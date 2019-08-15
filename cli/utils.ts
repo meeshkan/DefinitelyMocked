@@ -7,23 +7,8 @@ import { some, none, Option, map, getOrElse } from "fp-ts/lib/Option";
 
 const debugLog = debug("cli:utils");
 
-/*
-Sequencing IOs:
-
-// Using tuples
-const ioSequence = sequenceT(io);
-const sequenced = ioSequence(() => {}, () => {});
-
-// Using arrays
-const ios: IO<void>[] = [() => {}, () => {}];
-const sequenceArray = array.sequence(io);
-const sequenced = sequenceArray(ios);
-
-*/
-
 const ioSequence = array.sequence(io);
 
-// TODO Rather return IOEither
 export const copyFiles = ({
   source,
   targetDir,
@@ -35,9 +20,7 @@ export const copyFiles = ({
 }): IO<void[]> => {
   const files = fs
     .readdirSync(source)
-    .filter((filename: string) =>
-      typeof pattern === "undefined" ? true : pattern.test(filename)
-    );
+    .filter((filename: string) => (typeof pattern === "undefined" ? true : pattern.test(filename)));
   debugLog(`Preparing moving: ${JSON.stringify(files)}`);
 
   const copyOps: IO<void>[] = files.map((filename: string) => {
@@ -52,22 +35,14 @@ export const copyFiles = ({
   return ioSequence(copyOps);
 };
 
-// TODO Rather return IOEither
-export const writeToFile = ({
-  contents,
-  targetFile,
-}: {
-  contents: string | object;
-  targetFile: string;
-}): IO<void> => {
+export const writeToFile = ({ contents, targetFile }: { contents: string | object; targetFile: string }): IO<void> => {
   debugLog(`Preparing write to ${targetFile}`);
 
   if (!path.isAbsolute(targetFile)) {
     throw Error(`Expected absolute path to target, got ${targetFile}`);
   }
 
-  const prettyPrinted =
-    typeof contents !== "string" ? JSON.stringify(contents, null, 2) : contents;
+  const prettyPrinted = typeof contents !== "string" ? JSON.stringify(contents, null, 2) : contents;
 
   return () => {
     debugLog(`Writing to ${targetFile}}`);
@@ -75,9 +50,6 @@ export const writeToFile = ({
   };
 };
 
-/**
- * TODO Do not throw on failures.
- */
 export const readPackageJson = (sourceDir: string): Option<PackageJson> => {
   const pathToFile = path.resolve(sourceDir, "package.json");
 
@@ -92,15 +64,7 @@ export const readPackageJson = (sourceDir: string): Option<PackageJson> => {
 
 type PackageJson = Record<string, any>;
 
-export const createPackageJson = ({
-  service,
-  sourceDir,
-}: {
-  service: string;
-  sourceDir: string;
-}): PackageJson => {
-  const existingPackageJson: Option<PackageJson> = readPackageJson(sourceDir);
-
+export const mergePackageJsons = ({ service, source }: { service: string; source: Option<PackageJson> }) => {
   const packageJsonOverride = (version?: string): PackageJson => ({
     name: `@unmock/${service}`,
     description: `Service specification for ${service}`,
@@ -115,14 +79,17 @@ export const createPackageJson = ({
     version: typeof version === "undefined" ? "1.0.0" : version,
   });
 
-  const existingPackageJsonAugmented: Option<PackageJson> = map(
-    (packageJson: PackageJson) => ({
-      ...packageJson,
-      ...packageJsonOverride(packageJson.version),
-    })
-  )(existingPackageJson);
+  const existingPackageJsonAugmented: Option<PackageJson> = map((packageJson: PackageJson) => ({
+    ...packageJson,
+    ...packageJsonOverride(packageJson.version),
+  }))(source);
 
   return getOrElse(() => packageJsonOverride())(existingPackageJsonAugmented);
+};
+
+export const createPackageJson = ({ service, sourceDir }: { service: string; sourceDir: string }): PackageJson => {
+  const existingPackageJson: Option<PackageJson> = readPackageJson(sourceDir);
+  return mergePackageJsons({ service, source: existingPackageJson });
 };
 
 export const createReadme = ({ service }: { service: string }): string => {
@@ -192,14 +159,10 @@ export const ensureTargetDirectory = ({
   // Resolve absolute path to target directory: "/path/to/base/service-name"
   const targetServiceDirectory = path.resolve(targetBase, service);
 
-  const createTargetDirectoryOp: IO<void> = () =>
-    ensureDirectory(targetServiceDirectory);
+  const createTargetDirectoryOp: IO<void> = () => ensureDirectory(targetServiceDirectory);
 
   return {
     targetServiceDirectory,
-    createDirectoryOps: ioSequence([
-      createBaseDirectoryOp,
-      createTargetDirectoryOp,
-    ]),
+    createDirectoryOps: ioSequence([createBaseDirectoryOp, createTargetDirectoryOp]),
   };
 };
