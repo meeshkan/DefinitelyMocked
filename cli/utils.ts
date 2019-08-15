@@ -105,7 +105,7 @@ yarn add @unmock/${service} -D
 
 This package contains the service definitions for ${service}.
 
-## Defails
+## Details
 
 Files were exported from https://github.com/unmock/DefinitelyMocked/tree/master/services/${service}.
 
