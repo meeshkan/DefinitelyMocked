@@ -27,18 +27,8 @@ const existsDir = (directory: string) => {
   return fs.existsSync(directory) && fs.statSync(directory).isDirectory();
 };
 
-/**
- * TODO Do not hard-code services to live in `__dirname/../services`
- * @param service Service name, the name of the folder where to read service specification.
- */
-const resolveServiceDefinitionDirectory = (service: string) => {
-  const servicesDir = path.resolve(__dirname, "..", "services");
-  return path.resolve(servicesDir, service);
-};
-
 const prepareMain = (service: string, opts: Partial<PrepareOptions>) => {
   const { targetDirectory, ops } = prepare(service, opts);
-  // console.log(`Writing files to: ${color(targetDirectory)}`);
   ops();
   console.log(`Prepared package in: ${color(targetDirectory)}`);
 };
@@ -59,9 +49,8 @@ const prepare = (
   opts: Partial<PrepareOptions>
 ): { targetDirectory: string; ops: IO<any[]> } => {
   /**
-   * Resolve where to read files
+   * Resolve service and output base directories
    */
-
   const { servicesDir, outBaseDir } = resolveOptions(opts);
 
   const serviceDefinitionDirectory = path.resolve(servicesDir, service);
@@ -75,7 +64,6 @@ const prepare = (
   /**
    * Resolve where to write files
    */
-
   const resolvedTargetBase = outBaseDir;
 
   const {
