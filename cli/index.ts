@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const program = require("commander");
+import program from "commander";
 import prepare, { DEFAULT_PREPARE_DIR } from "./prepare";
 
 if (process.argv.length < 3) {
