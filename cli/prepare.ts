@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import debug from "debug";
 import fs from "fs";
 import path from "path";
 import { format } from "util";
@@ -17,11 +16,6 @@ export const DEFAULT_PREPARE_DIR = "prepared";
 const color = (firstArg: any, ...args: any[]) =>
   chalk.bold.magenta(format(firstArg, ...args));
 
-const log = (firstArg: any, ...args: any[]) =>
-  console.log(color(firstArg, ...args));
-
-const debugLog = debug("cli");
-
 interface PrepareOptions {
   outDir: string;
 }
@@ -30,8 +24,13 @@ const existsDir = (directory: string) => {
   return fs.existsSync(directory) && fs.statSync(directory).isDirectory();
 };
 
+/**
+ * TODO Do not hard-code services to live in `__dirname/../services`
+ * @param service Service name, the name of the folder where to read service specification.
+ */
 const resolveServiceDefinitionDirectory = (service: string) => {
-  return path.resolve(__dirname, "..", "services", service);
+  const servicesDir = path.resolve(__dirname, "..", "services");
+  return path.resolve(servicesDir, service);
 };
 
 const prepare = (service: string, opts: Partial<PrepareOptions>) => {
