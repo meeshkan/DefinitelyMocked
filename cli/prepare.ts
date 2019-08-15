@@ -3,7 +3,12 @@ import debug from "debug";
 import fs from "fs";
 import path from "path";
 import { format } from "util";
-import { copyFiles, createPackageJson, writeToFile } from "./utils";
+import {
+  copyFiles,
+  createPackageJson,
+  writeToFile,
+  createReadme,
+} from "./utils";
 import { IO } from "fp-ts/lib/IO";
 
 export const DEFAULT_PREPARE_DIR = "prepared";
@@ -133,12 +138,22 @@ const prepare = (service: string, opts: Partial<PrepareOptions>) => {
   );
 
   const writePackageJsonOp: IO<void> = writeToFile({
-    object: packageJson,
+    contents: packageJson,
     targetFile: path.resolve(targetDirectory, "package.json"),
+  });
+
+  const readme = createReadme({
+    service,
+  });
+
+  const writeReadmeOp: IO<void> = writeToFile({
+    contents: readme,
+    targetFile: path.resolve(targetDirectory, "README.md"),
   });
 
   copyFilesOp();
   writePackageJsonOp();
+  writeReadmeOp();
 };
 
 export default prepare;

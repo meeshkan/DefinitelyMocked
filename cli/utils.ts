@@ -54,10 +54,10 @@ export const copyFiles = ({
 
 // TODO Rather return IOEither
 export const writeToFile = ({
-  object,
+  contents,
   targetFile,
 }: {
-  object: any;
+  contents: string | object;
   targetFile: string;
 }): IO<void> => {
   debugLog(`Preparing write to ${targetFile}`);
@@ -66,7 +66,8 @@ export const writeToFile = ({
     throw Error(`Expected absolute path to target, got ${targetFile}`);
   }
 
-  const prettyPrinted = JSON.stringify(object, null, 2);
+  const prettyPrinted =
+    typeof contents !== "string" ? JSON.stringify(contents, null, 2) : contents;
 
   return () => {
     debugLog(`Writing to ${targetFile}}`);
@@ -122,4 +123,25 @@ export const createPackageJson = ({
   )(existingPackageJson);
 
   return getOrElse(() => packageJsonOverride())(existingPackageJsonAugmented);
+};
+
+export const createReadme = ({ service }: { service: string }): string => {
+  const readme = `
+## Installation
+
+\`\`\`bash
+npm install @unmock/${service} --save-dev
+yarn add @unmock/${service} -D 
+\`\`\`
+
+## Summary
+
+This package contains the service definitions for ${service}.
+
+## Defails
+
+Files were exported from https://github.com/unmock/DefinitelyMocked/tree/master/services/${service}.
+
+`;
+  return readme;
 };
