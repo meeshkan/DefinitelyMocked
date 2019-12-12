@@ -4,7 +4,7 @@ This repository contains [service descriptions](https://www.unmock.io/docs/opena
 
 ## Installing services
 
-Browse for services in [services](./services) folder. Every subfolder in `services` is a service description containing, for example, an OpenAPI specification for the service. For an example, see the service description for `Github` v3 API in [./services/githubv3](./services/githubv3).
+Browse for services in [services](./services) folder. Every subfolder in `services` is a service description containing, for example, an OpenAPI specification for the service. For an example, see the service description for [Github REST API v3](https://developer.github.com/v3/) in [./services/githubv3](./services/githubv3).
 
 Once you've found a service you need for your tests, install it from [npm](https://www.npmjs.com/). Service descriptions are publishes under the [@unmock](https://www.npmjs.com/org/unmock) organization.
 
