@@ -18,7 +18,7 @@ yarn add -D @unmock/githubv3
 
 `unmock-js` will then automatically include the service description in your tests from `node_modules/@unmock`.
 
-For an example of how to use service descriptions for mocking APIs in tests, see the [example project](https://github.com/unmock/unmock-examples/tree/master/using-service-repository) in [unmock-examples](https://github.com/unmock/unmock-examples).
+For an example of how to use service descriptions for mocking APIs in tests, see the [example project](https://github.com/meeshkan/unmock-examples/tree/master/using-service-repository) in [unmock-examples](https://github.com/meeshkan/unmock-examples).
 
 ## Adding new services
 
@@ -44,6 +44,6 @@ Publish the package from `./prepared/<service-name>`.
 
 ## Contributing
 
-Thanks for wanting to contribute! We'll soon have a contributing page detaling how you can get involved. Meanwhile, feel free to star this repository, [open issues](https://github.com/unmock/DefinitelyMocked/issues) and ask for more features and support.
+Thanks for wanting to contribute! We'll soon have a contributing page detaling how you can get involved. Meanwhile, feel free to star this repository, [open issues](https://github.com/meeshkan/DefinitelyMocked/issues) and ask for more features and support.
 
-Please note that this repository is governed by the [Unmock Community Code of Conduct](https://github.com/unmock/code-of-conduct). By participating, you agree to abide by its terms.
+Please note that this repository is governed by the [Meeshkan Community Code of Conduct](https://github.com/meeshkan/code-of-conduct). By participating, you agree to abide by its terms.
